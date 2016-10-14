@@ -12,10 +12,13 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
+import team_project.BlockGUI.Tetro;
+
 public class Board extends JPanel implements ActionListener {
+	
+	
 	int boardwidth = 10; // 보드의 길이
 	int boardheight = 10; // 보드의 높이
-	Timer timer; // 타이머 swing
 
 	boolean isFallingFinised = false; // 블록이 떨어지는지 확인
 	boolean isStarted = false; // 시작
@@ -62,76 +65,9 @@ public class Board extends JPanel implements ActionListener {
 		return board[(y * boardwidth) + x];
 	}
 
-	public void start() { // 게임 시작 
-		if (isStarted) { // 게임 시작 확인 
-			return;
-		}
-
-		isStarted = true; // 게임이 시작이면 true
-		isFallingFinised = false; // 게임 종료면 false
-		countLinesRemoved = 0;
-		clearBoard();
-
-		newPiece();
-		timer.start();
-	}
 
 
-	private void pause() { // 게임 중단 
-		if (isPaused) { // 게임이 중단 되었는지 확인한다.
-			return;
-		}
 
-		isPaused = isStarted;
-
-		if (isPaused) {
-			timer.stop();
-			statusbar.setText("paused");
-		} else {
-			timer.start();
-			statusbar.setText("score : " + countLinesRemoved);
-		}
-		repaint();
-	}
-
-	@Override
-	public void paint(Graphics g) {
-		super.paint(g);
-
-		Dimension size = getSize();
-		int boardTop = (int) size.getHeight() - boardheight * squareHeight();
-
-		// 쌓여 있는 블록을 그린다.
-		for (int nowHeight = 0; nowHeight < boardheight; ++nowHeight) {
-			for (int nowWidth = 0; nowWidth < boardwidth; ++nowWidth) {
-
-				Block shape = shapeAt(nowWidth, boardheight - nowHeight - 1);
-				if (shape != Block.NoShape)
-					drawSquare(g, 0 + nowWidth * squareWidth(), boardTop + nowHeight * squareHeight(), shape);
-			}
-		}
-
-		// 현재 떨어지고 있는 테트리스 블록을 그린다.
-		if (pieceShape.getShape() != Block.NoShape) {
-			// 테트리스 블록을 그린다.
-			for (int i = 0; i < 4; ++i) {
-				int x = locationX + pieceShape.getX(i);
-				int y = locationY - pieceShape.getY(i);
-				drawSquare(g, 0 + x * squareWidth(), boardTop + (boardheight - y - 1) * squareHeight(),
-						pieceShape.getShape());
-			}
-		}
-	}
-
-	private void dropDown() {
-		int newY = locationY;
-		while (newY > 0) {
-			if (!tryMove(pieceShape, locationX, newY - 1))
-				break;
-			--newY;
-		}
-		pieceDropped();
-	}
 
 	private void pieceDropped() {
 		for (int i = 0; i < 4; ++i) { // 테트리스 블록은 4개의 블록으로 이루어져 있다.
@@ -156,7 +92,7 @@ public class Board extends JPanel implements ActionListener {
 
 			// 해당하는 라인에서 하나라도 빈 블록이 있는지 확인
 			for (int j = 0; j < boardwidth; ++j) {
-				if (shapeAt(j, i) == TetrisBlock.NoShape) {
+				if (shapeAt(j, i) == Block.NoShape) {
 					lineIsFull = false;
 					break;
 				}
@@ -195,7 +131,7 @@ public class Board extends JPanel implements ActionListener {
 			}
 
 			// 다른 테트리스 블록과 충돌하는 지 확인
-			if (shapeAt(x, y) != TetrisBlock.NoShape) {
+			if (shapeAt(x, y) != Block.NoShape) {
 				System.out.println("블록");
 				return false;
 			}
@@ -210,7 +146,7 @@ public class Board extends JPanel implements ActionListener {
 
 	private void clearBoard() {
 		for (int i = 0; i < boardheight * boardwidth; i++) {
-			board[i] = TetrisBlock.NoShape;
+			board[i] = Block.NoShape;
 		}
 	}
 
@@ -223,8 +159,7 @@ public class Board extends JPanel implements ActionListener {
 		System.out.println(pieceShape.getShape() + " : create location x : " + locationX + " y : " + locationY);
 
 		if (!tryMove(pieceShape, locationX, locationY)) {
-			pieceShape.setShape(TetrisBlock.NoShape);
-			timer.stop();
+			pieceShape.setShape(Block.NoShape);
 			isStarted = false;
 			statusbar.setText("game over");
 			System.out.println("game over");
@@ -237,29 +172,7 @@ public class Board extends JPanel implements ActionListener {
 		}
 	}
 
-	private void drawSquare(Graphics g, int x, int y, TetrisBlock shape) {
-		// 색 정의 모양과 같은 위치에 해당하는 것의 색이 정의되어 있다.
-		Color colors[] = { new Color(0, 0, 0), new Color(204, 102, 102), new Color(102, 204, 102),
-				new Color(102, 102, 204), new Color(204, 204, 102), new Color(204, 102, 204), new Color(102, 204, 204),
-				new Color(218, 170, 0) };
-
-		// 선택된 모양의 컬러 가져오기
-		Color color = colors[shape.ordinal()];
-
-		// 사각형의 내부
-		g.setColor(color);
-		g.fillRect(x + 1, y + 1, squareWidth() - 2, squareHeight() - 2);
-
-		// 사각형의 외부 상단, 왼쪽
-		g.setColor(color.brighter());
-		g.drawLine(x, y + squareHeight() - 1, x, y); // 왼쪽 선
-		g.drawLine(x, y, x + squareWidth() - 1, y); // 상단 선
-
-		// 사각형의 외부 하단, 오른쪽
-		g.setColor(color.darker());
-		g.drawLine(x + 1, y + squareHeight() - 1, x + squareWidth() - 1, y + squareHeight() - 1);// 하단
-		g.drawLine(x + squareWidth() - 1, y + squareHeight() - 1, x + squareWidth() - 1, y + 1);// 오른쪽
-	}
+	
 
 	class TetrisKeyListener extends KeyAdapter {
 
@@ -267,14 +180,13 @@ public class Board extends JPanel implements ActionListener {
 		public void keyPressed(KeyEvent e) {
 			super.keyPressed(e);
 
-			if (!isStarted || pieceShape.getShape() == TetrisBlock.NoShape) {
+			if (!isStarted || pieceShape.getShape() == Block.NoShape) {
 				return;
 			}
 
 			int keycode = e.getKeyCode();
 
 			if (keycode == 'p' || keycode == 'P') {
-				pause();
 				return;
 			}
 
@@ -295,7 +207,6 @@ public class Board extends JPanel implements ActionListener {
 				tryMove(pieceShape.rotateLeft(), locationX, locationY);
 				break;
 			case KeyEvent.VK_SPACE:
-				dropDown();
 				break;
 			case 'd':
 				oneLineDown();
@@ -305,6 +216,13 @@ public class Board extends JPanel implements ActionListener {
 				break;
 			}
 		}
+	}
+
+
+
+	public void start() {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

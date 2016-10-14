@@ -3,6 +3,8 @@ package tetris;
 import java.awt.Shape;
 import java.util.Random;
 
+import team_project.Tetrominoes;
+import team_project.User;
 import tetris.Block.TetrisBlock;
 
 public class Block {
@@ -10,7 +12,7 @@ public class Block {
 		NoShape, ZShape, SShape, LineShape, TShape, SquareShape, LShape, MirroredLShape
 	}
 
-	public static final TetrisBlock NoShape = null;;
+	public static final Block NoShape = null;;
 
 	private int blocks[][]; // 테트리스의 블록의 좌표[][][]
 	private int blockTable[][][]; // 테트리스 테이블의 좌표 [][][]
@@ -18,6 +20,9 @@ public class Block {
 	private int rotation;
 
 	public Block() {
+		
+		
+		
 		blocks = new int[4][2];
 		setShape(currentBlock.NoShape);
 
@@ -123,5 +128,15 @@ public class Block {
 			result.setY(i, getX(i));
 		}
 		return result;
+	}
+
+	public int ordinal() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	public void setShape(Block noshape2) {
+		// TODO Auto-generated method stub
+		
 	}
 }
